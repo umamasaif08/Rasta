@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    function isOwner(resourceData) {
+      return isSignedIn() && request.auth.uid == resourceData.createdBy;
+    }
+
+    // ─── Resources ──────────────────────────────────────────────────────
+    match /resources/{resourceId} {
+      // Public can only read approved listings;
+      // owners and admins can read any status
+      allow read: if resource.data.status == "approved"
+                  || isOwner(resource.data)
+                  || isAdmin();
+
+      // Only signed-in orgs can create; they must set their own uid
+      // and status must start as "pending"
+      allow create: if isSignedIn()
+                    && request.resource.data.createdBy == request.auth.uid
+                    && request.resource.data.status == "pending";
+
+      // Owner can update any field EXCEPT status (status is admin-only)
+      // Admin can update anything
+      allow update: if isAdmin()
+                    || (isOwner(resource.data)
+                        && request.resource.data.status == resource.data.status);
+
+      allow delete: if isAdmin() || isOwner(resource.data);
+    }
+
+    // ─── Users ──────────────────────────────────────────────────────────
+    match /users/{userId} {
+      allow read:   if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isAdmin() || request.auth.uid == userId;
+      allow delete: if isAdmin();
+    }
+
+    // ─── Reports ────────────────────────────────────────────────────────
+    match /reports/{reportId} {
+      // Anyone can submit a report — no login needed
+      allow create: if true;
+      // Only admin can read or resolve reports
+      // (reporter contact info must never be publicly readable)
+      allow read, update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+  }
+}

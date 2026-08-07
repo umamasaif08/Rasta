@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+/* ─── Design Tokens ─────────────────────────────────────────────────── */
+@theme {
+  /* Palette */
+  --color-teal:             #008585;
+  --color-teal-dark:        #006868;
+  --color-teal-light:       #e6f4f4;
+  --color-terracotta:       #C7522A;
+  --color-terracotta-light: #f5e0d8;
+  --color-sage:             #74A892;
+  --color-sage-light:       #eaf2ef;
+  --color-sand:             #E5C185;
+  --color-sand-light:       #fdf3e0;
+  --color-cream:            #FBF2C4;
+  --color-ink:              #152524;
+  --color-ink-muted:        #4a6060;
+  --color-ink-faint:        #9ab5b5;
+  --color-surface:          #ffffff;
+  --color-surface-2:        #f7f9f9;
+
+  /* Typography */
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-body:    var(--font-inter), system-ui, sans-serif;
+  --font-mono:    var(--font-ibm-plex-mono), "Courier New", monospace;
+
+  /* Radii */
+  --radius-card: 12px;
+  --radius-btn:  8px;
+}
+
+/* ─── Base ──────────────────────────────────────────────────────────── */
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: var(--color-surface);
+  color:            var(--color-ink);
+  font-family:      var(--font-body);
+  -webkit-font-smoothing:  antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Typography helpers ─────────────────────────────────────────────── */
+.font-display { font-family: var(--font-display); }
+.font-body    { font-family: var(--font-body); }
+.font-mono    { font-family: var(--font-mono); }
+
+/* ─── Focus ring — high-contrast, always visible ─────────────────────── */
+:focus-visible {
+  outline:        2px solid var(--color-teal);
+  outline-offset: 3px;
+  border-radius:  4px;
+}
+
+/* Remove outline for mouse users, keep for keyboard */
+:focus:not(:focus-visible) { outline: none; }
+
+/* ─── Selection colour ──────────────────────────────────────────────── */
+::selection {
+  background: var(--color-teal-light);
+  color:      var(--color-teal-dark);
+}
+
+/* ─── Reduced motion ────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration:       0.01ms !important;
+    animation-iteration-count: 1     !important;
+    transition-duration:      0.01ms !important;
+    scroll-behavior:          auto   !important;
+  }
+}
+
+/* ─── Scrollbar (subtle, WebKit) ────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-ink-faint); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-teal); }
+
+/* ─── Leaflet z-index fix (sits under sticky nav) ────────────────────── */
+.leaflet-pane         { z-index: 200 !important; }
+.leaflet-control      { z-index: 300 !important; }
+.leaflet-top,
+.leaflet-bottom       { z-index: 300 !important; }
+
+/* ─── Line-clamp utility ─────────────────────────────────────────────── */
+.line-clamp-2 {
+  display:            -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow:           hidden;
+}
+
+/* ─── Print / low-bandwidth ─────────────────────────────────────────── */
+@media print {
+  nav, .no-print, .leaflet-container { display: none !important; }
+  body { color: #000; background: #fff; font-size: 12pt; }
+  a::after { content: " (" attr(href) ")"; font-size: 10pt; color: #555; }
+}
