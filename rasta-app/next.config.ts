@@ -1,11 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Strict mode for catching bugs early
   reactStrictMode: true,
 
+  // Remove the Next.js dev toolbar / build indicator from bottom-left
+  devIndicators: false,
+
   images: {
-    // Allow Firebase Storage domain once org photos are added (Phase 3+)
     remotePatterns: [
       {
         protocol: "https",

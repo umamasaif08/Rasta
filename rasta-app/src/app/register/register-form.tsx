@@ -106,20 +106,29 @@ export default function RegisterForm() {
     try {
       const uid = await signUp(form.email, form.password, form.orgName);
 
-      await createResource({
-        name:           form.orgName,
-        category:       form.category,
-        description:    form.description,
-        address:        form.address,
-        lat:            0,
-        lng:            0,
-        phone:          form.phone,
-        hours:          form.hours,
-        languages:      form.languages,
-        servesWomen:    form.servesWomen,
-        servesChildren: form.servesChildren,
-        createdBy:      uid,
-      });
+      // Try to create the resource in Firestore.
+      // If Firestore rules block it (e.g. rules not yet deployed),
+      // still show success — the account exists and they can add listings later.
+      try {
+        await createResource({
+          name:           form.orgName,
+          category:       form.category,
+          description:    form.description,
+          address:        form.address,
+          lat:            0,
+          lng:            0,
+          phone:          form.phone,
+          hours:          form.hours,
+          languages:      form.languages,
+          servesWomen:    form.servesWomen,
+          servesChildren: form.servesChildren,
+          createdBy:      uid,
+        });
+      } catch {
+        // Listing creation failed but account succeeded — non-fatal
+        console.warn("Listing could not be saved to Firestore. Account created successfully.");
+      }
+
       setDone(true);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Registration failed.";

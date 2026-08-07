@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, useInView, useMotionValue, useSpring, AnimatePresence } from "framer-motion";
 import { Home, Utensils, Stethoscope, Scale, ArrowRight, Search } from "lucide-react";
 import { getApprovedResources } from "@/lib/resources";
+import { DUMMY_RESOURCES } from "@/data/resources";
 import FlipCard from "@/components/ui/flip-card";
 import { ORGANISATIONS } from "@/data/organisations";
 
@@ -92,7 +93,8 @@ const steps = [
 
 // ── Page ──────────────────────────────────────────────────────────────────
 export default function HomePage() {
-  const [resourceCount, setResourceCount] = useState(0);
+  // Start with dummy count immediately — no flash of 0
+  const [resourceCount, setResourceCount] = useState(DUMMY_RESOURCES.length);
   const [query, setQuery] = useState("");
   const howRef = useRef<HTMLElement>(null);
   const howInView = useInView(howRef, { once: true, margin: "-80px" });

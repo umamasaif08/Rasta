@@ -56,6 +56,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (email: string, password: string, orgName: string): Promise<string> => {
     const credential = await createUserWithEmailAndPassword(auth, email, password);
     const uid = credential.user.uid;
+
+    // Force token refresh so the Firestore SDK has a valid auth token
+    // before any subsequent Firestore writes fire
+    await credential.user.getIdToken(true);
+
     await setDoc(doc(db, "users", uid), {
       uid,
       orgName,
