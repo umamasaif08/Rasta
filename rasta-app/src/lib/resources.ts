@@ -21,6 +21,7 @@ function toSummary(id: string, data: Resource): ResourceSummary {
     id,
     name: data.name,
     category: data.category,
+    description: data.description,  // Added for flip card back face
     address: data.address,
     lat: data.lat,
     lng: data.lng,

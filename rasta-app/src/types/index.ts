@@ -47,6 +47,7 @@ export interface ResourceSummary {
   id: string;
   name: string;
   category: ResourceCategory;
+  description: string;  // Added for flip card back face
   address: string;
   lat: number;
   lng: number;

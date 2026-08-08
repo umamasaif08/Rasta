@@ -1,9 +1,10 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Phone, MapPin, Clock, Globe2, Users, Baby, ArrowUpRight } from "lucide-react";
+import { Phone, MapPin, Clock, Globe2, Users, Baby, Navigation } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import AiVerifiedBadge from "@/components/ui/ai-verified-badge";
 import type { ResourceSummary, ResourceCategory } from "@/types";
 
 // ── Category meta ──────────────────────────────────────────────────────────
@@ -68,7 +69,21 @@ interface ResourceCardProps {
 }
 
 export default function ResourceCard({ resource, index = 0 }: ResourceCardProps) {
+  const [flipped, setFlipped] = useState(false);
   const meta = CATEGORY_META[resource.category];
+
+  // Create directions URL
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(resource.address)}`;
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't flip if clicking on nested interactive elements
+    const target = e.target as HTMLElement;
+    if (target.closest('a, button') && target.closest('a, button') !== e.currentTarget) {
+      e.stopPropagation();
+      return;
+    }
+    setFlipped(!flipped);
+  };
 
   return (
     <motion.div
@@ -76,123 +91,170 @@ export default function ResourceCard({ resource, index = 0 }: ResourceCardProps)
       initial="hidden"
       animate="visible"
       variants={cardVariants}
-      whileHover="hovered"
       className="h-full"
     >
-      <Link href={`/resources/${resource.id}`} className="block h-full group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-teal)] rounded-[var(--radius-card)]">
-        <motion.article
-          variants={{
-            hovered: {
-              y:         -6,
-              boxShadow: `0 16px 40px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.06)`,
-              transition: { type: "spring", stiffness: 300, damping: 22 },
-            },
+      {/* ── Flip container with perspective ─────────────────────────── */}
+      <div className="h-full min-h-[300px]" style={{ perspective: "1000px" }}>
+        <div
+          className="relative h-full cursor-pointer"
+          onClick={handleCardClick}
+          onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setFlipped(!flipped)}
+          tabIndex={0}
+          role="button"
+          aria-label={`${resource.name} — click to flip for details`}
+          style={{
+            transformStyle: "preserve-3d",
+            transition: "transform 0.6s",
+            transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
+            height: "100%",
           }}
-          className="relative h-full flex flex-col rounded-[var(--radius-card)] border border-[var(--color-teal-light)] bg-[var(--color-surface)] overflow-hidden shadow-sm"
-          aria-label={`${resource.name} — ${meta.label}`}
         >
-          {/* Coloured top stripe */}
-          <motion.div
-            variants={{
-              hovered: { scaleX: 1 },
+          {/* ── FRONT FACE ──────────────────────────────────────────── */}
+          <div
+            className="absolute inset-0"
+            style={{ 
+              backfaceVisibility: "hidden",
+              WebkitBackfaceVisibility: "hidden", // Safari support
             }}
-            initial={{ scaleX: 0 }}
-            style={{ background: meta.accent, transformOrigin: "left" }}
-            className="h-1 w-full"
-            transition={{ duration: 0.3, ease: "easeOut" }}
-          />
+          >
+            <div className="h-full rounded-[var(--radius-card)] border border-[var(--color-teal-light)] bg-[var(--color-surface)] shadow-sm overflow-hidden flex flex-col">
+              {/* Coloured top stripe */}
+              <div
+                style={{ background: meta.accent }}
+                className="h-1 w-full flex-shrink-0"
+              />
 
-          {/* Card body */}
-          <div className="flex flex-col flex-1 p-5 gap-3">
-
-            {/* Top row: badge + arrow */}
-            <div className="flex items-center justify-between">
-              <Badge variant={CATEGORY_BADGE[resource.category]}>
-                {meta.label}
-              </Badge>
-              <motion.div
-                variants={{ hovered: { x: 3, y: -3, opacity: 1 } }}
-                initial={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <ArrowUpRight
-                  className="h-4 w-4"
-                  style={{ color: meta.accent }}
-                  aria-hidden
-                />
-              </motion.div>
-            </div>
-
-            {/* Name */}
-            <motion.h3
-              variants={{ hovered: { color: meta.accent } }}
-              transition={{ duration: 0.18 }}
-              className="font-semibold text-[var(--color-ink)] text-base leading-snug"
-              style={{ color: "var(--color-ink)" }}
-            >
-              {resource.name}
-            </motion.h3>
-
-            {/* Info rows */}
-            <ul className="flex flex-col gap-2 text-xs text-[var(--color-ink-muted)] flex-1">
-              <li className="flex items-start gap-2">
-                <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" style={{ color: meta.accent }} aria-hidden />
-                <span className="leading-relaxed">{resource.address}</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Clock className="h-3.5 w-3.5 shrink-0" style={{ color: meta.accent }} aria-hidden />
-                <span className="line-clamp-1">{resource.hours}</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <Phone className="h-3.5 w-3.5 shrink-0" style={{ color: meta.accent }} aria-hidden />
-                <span
-                  onClick={(e) => e.preventDefault()}
-                  className="hover:text-[var(--color-teal)] transition-colors"
-                >
-                  {resource.phone}
-                </span>
-              </li>
-              {resource.languages.length > 0 && (
-                <li className="flex items-center gap-2">
-                  <Globe2 className="h-3.5 w-3.5 shrink-0" style={{ color: meta.accent }} aria-hidden />
-                  <span className="line-clamp-1">{resource.languages.join(", ")}</span>
-                </li>
-              )}
-            </ul>
-
-            {/* Footer: audience tags + verified */}
-            <div className="flex items-center justify-between pt-2 border-t border-[var(--color-teal-light)]">
-              <div className="flex gap-1.5 flex-wrap">
-                {resource.servesWomen && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-medium rounded-full bg-[var(--color-teal-light)] text-[var(--color-teal-dark)] px-2 py-0.5">
-                    <Users className="h-2.5 w-2.5" aria-hidden /> Women
+              {/* Card body */}
+              <div className="flex-1 p-5 flex flex-col">
+                {/* Top row: badge + click hint */}
+                <div className="flex items-center justify-between mb-3">
+                  <Badge variant={CATEGORY_BADGE[resource.category]}>
+                    {meta.label}
+                  </Badge>
+                  <span className="text-xs text-[var(--color-ink-faint)] font-medium">
+                    Click to flip
                   </span>
-                )}
-                {resource.servesChildren && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-medium rounded-full bg-[var(--color-sage-light)] text-[var(--color-sage)] px-2 py-0.5">
-                    <Baby className="h-2.5 w-2.5" aria-hidden /> Children
-                  </span>
-                )}
+                </div>
+
+                {/* Name */}
+                <h3 className="font-semibold text-[var(--color-ink)] text-base leading-snug mb-3">
+                  {resource.name}
+                </h3>
+
+                {/* Quick info */}
+                <div className="flex-1 space-y-2 text-xs text-[var(--color-ink-muted)]">
+                  <div className="flex items-start gap-2">
+                    <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" style={{ color: meta.accent }} aria-hidden />
+                    <span className="leading-relaxed line-clamp-2">{resource.address}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-3.5 w-3.5 shrink-0" style={{ color: meta.accent }} aria-hidden />
+                    <span className="line-clamp-1">{resource.hours}</span>
+                  </div>
+                </div>
+
+                {/* Footer: audience tags + AI verified badge */}
+                <div className="flex items-center justify-between pt-3 border-t border-[var(--color-teal-light)] mt-3">
+                  <div className="flex gap-1.5 flex-wrap">
+                    {resource.servesWomen && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-medium rounded-full bg-[var(--color-teal-light)] text-[var(--color-teal-dark)] px-2 py-0.5">
+                        <Users className="h-2.5 w-2.5" aria-hidden /> Women
+                      </span>
+                    )}
+                    {resource.servesChildren && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-medium rounded-full bg-[var(--color-sage-light)] text-[var(--color-sage)] px-2 py-0.5">
+                        <Baby className="h-2.5 w-2.5" aria-hidden /> Children
+                      </span>
+                    )}
+                  </div>
+                  <AiVerifiedBadge />
+                </div>
               </div>
-              <span className="text-[10px] font-medium text-[var(--color-sand)] bg-[var(--color-sand-light)] rounded-full px-2 py-0.5">
-                ✓ Verified
-              </span>
             </div>
           </div>
 
-          {/* Hover glow overlay */}
-          <motion.div
-            variants={{ hovered: { opacity: 1 } }}
-            initial={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="pointer-events-none absolute inset-0 rounded-[var(--radius-card)]"
+          {/* ── BACK FACE ───────────────────────────────────────────── */}
+          <div
+            className="absolute inset-0"
             style={{
-              background: `radial-gradient(ellipse 80% 50% at 50% 0%, ${meta.bg} 0%, transparent 70%)`,
+              backfaceVisibility: "hidden",
+              WebkitBackfaceVisibility: "hidden", // Safari support
+              transform: "rotateY(180deg)",
             }}
-            aria-hidden
-          />
-        </motion.article>
-      </Link>
+          >
+            <div
+              className="h-full rounded-[var(--radius-card)] p-5 flex flex-col text-white overflow-hidden"
+              style={{
+                background: `linear-gradient(135deg, ${meta.accent} 0%, color-mix(in srgb, ${meta.accent} 70%, #000) 100%)`,
+              }}
+            >
+              {/* Header */}
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <Badge variant={CATEGORY_BADGE[resource.category]} className="bg-white/20 text-white border-white/30">
+                    {meta.label}
+                  </Badge>
+                  <span className="text-xs text-white/60 font-medium">
+                    Click to flip back
+                  </span>
+                </div>
+                <h3 className="font-semibold text-white text-sm leading-snug">
+                  {resource.name}
+                </h3>
+              </div>
+
+              {/* Description */}
+              <div className="flex-1 mb-4">
+                <p className="text-xs text-white/90 leading-relaxed">
+                  {resource.description}
+                </p>
+              </div>
+
+              {/* Contact details */}
+              <div className="space-y-3">
+                <div className="flex items-start gap-2 text-xs text-white/80">
+                  <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" aria-hidden />
+                  <span className="leading-relaxed">{resource.address}</span>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs text-white/80">
+                  <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  <span>{resource.hours}</span>
+                </div>
+
+                {resource.languages.length > 0 && (
+                  <div className="flex items-center gap-2 text-xs text-white/80">
+                    <Globe2 className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    <span>{resource.languages.join(", ")}</span>
+                  </div>
+                )}
+
+                {/* Action buttons */}
+                <div className="flex gap-2 pt-2">
+                  <a
+                    href={mapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 flex-1 justify-center py-2 px-3 text-xs font-medium text-white bg-white/20 hover:bg-white/30 rounded-[var(--radius-btn)] transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Navigation className="h-3.5 w-3.5" aria-hidden />
+                    Directions
+                  </a>
+                  <a
+                    href={`tel:${resource.phone}`}
+                    className="flex items-center gap-1.5 flex-1 justify-center py-2 px-3 text-xs font-medium text-white bg-white/20 hover:bg-white/30 rounded-[var(--radius-btn)] transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Phone className="h-3.5 w-3.5" aria-hidden />
+                    Call
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </motion.div>
   );
 }
