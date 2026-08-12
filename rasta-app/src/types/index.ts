@@ -23,6 +23,7 @@ export interface Resource {
   createdAt: Timestamp | null;
   lastUpdated: Timestamp | null;
   verifiedAt: Timestamp | null;
+  aiReviewNotes?: string;  // Summary from AI assistant chat
 }
 
 export interface OrgUser {

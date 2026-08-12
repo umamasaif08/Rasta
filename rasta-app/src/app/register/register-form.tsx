@@ -59,6 +59,7 @@ export default function RegisterForm() {
   const [form, setForm]     = useState<FormState>(initial);
   const [loading, setLoading] = useState(false);
   const [done, setDone]     = useState(false);
+  const [listingFailed, setListingFailed] = useState(false);
   const [error, setError]   = useState<string | null>(null);
 
   const set = (k: keyof FormState, v: unknown) =>
@@ -103,12 +104,12 @@ export default function RegisterForm() {
     if (err) { setError(err); return; }
     setLoading(true);
     setError(null);
+    setListingFailed(false);
+    
     try {
       const uid = await signUp(form.email, form.password, form.orgName);
 
       // Try to create the resource in Firestore.
-      // If Firestore rules block it (e.g. rules not yet deployed),
-      // still show success — the account exists and they can add listings later.
       try {
         await createResource({
           name:           form.orgName,
@@ -124,9 +125,13 @@ export default function RegisterForm() {
           servesChildren: form.servesChildren,
           createdBy:      uid,
         });
-      } catch {
-        // Listing creation failed but account succeeded — non-fatal
-        console.warn("Listing could not be saved to Firestore. Account created successfully.");
+      } catch (listingError: unknown) {
+        // Listing creation failed but account succeeded
+        console.error(
+          "[RegisterForm] createResource failed after account creation:",
+          listingError
+        );
+        setListingFailed(true);
       }
 
       setDone(true);
@@ -164,11 +169,25 @@ export default function RegisterForm() {
         >
           <CheckCircle2 className="h-14 w-14 text-[var(--color-teal)] mx-auto mb-4" />
         </motion.div>
-        <h2 className="font-display text-2xl font-semibold mb-2">You're registered!</h2>
+        
+        <h2 className="font-display text-2xl font-semibold mb-2">
+          {listingFailed ? "Account created!" : "You're registered!"}
+        </h2>
+        
         <p className="text-[var(--color-ink-muted)] text-sm mb-6 max-w-xs mx-auto">
-          Your listing has been submitted for review. We'll make it live once
-          it's approved — usually within 24 hours.
+          {listingFailed ? (
+            <>
+              Your account was created, but we couldn't save your listing. 
+              Please add it from your dashboard.
+            </>
+          ) : (
+            <>
+              Your listing has been submitted for review. We'll make it live once
+              it's approved — usually within 24 hours.
+            </>
+          )}
         </p>
+        
         <Button onClick={() => router.push("/dashboard")}>
           Go to your dashboard
         </Button>

@@ -55,8 +55,19 @@ export async function getApprovedResources(): Promise<ResourceSummary[]> {
     snap.docs.forEach((d) => {
       staticMap.set(d.id, toSummary(d.id, d.data() as Resource));
     });
-  } catch {
-    // Firestore unavailable or rules deny — fall through with dummy data
+  } catch (error: any) {
+    console.error("[getApprovedResources] Firestore query failed:", error);
+    
+    // Check for missing composite index (failed-precondition)
+    if (error?.code === "failed-precondition") {
+      console.error(
+        "[getApprovedResources] Missing composite index detected. " +
+        "Firestore should have logged a console link to auto-create the index. " +
+        "Check the browser console for the index creation URL."
+      );
+    }
+    
+    // Fall through with dummy data
   }
 
   return Array.from(staticMap.values()).sort((a, b) =>
@@ -84,7 +95,16 @@ export async function getResourceById(id: string): Promise<Resource | null> {
     const snap = await getDoc(doc(db, "resources", id));
     if (!snap.exists()) return null;
     return { id: snap.id, ...(snap.data() as Resource) };
-  } catch {
+  } catch (error: any) {
+    console.error("[getResourceById] Firestore query failed for id:", id, error);
+    
+    if (error?.code === "failed-precondition") {
+      console.error(
+        "[getResourceById] Missing composite index detected. " +
+        "Check browser console for Firestore index creation link."
+      );
+    }
+    
     return null;
   }
 }
@@ -127,7 +147,17 @@ export async function getResourcesByOrg(uid: string): Promise<Resource[]> {
     );
     const snap = await getDocs(q);
     return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Resource) }));
-  } catch {
+  } catch (error: any) {
+    console.error("[getResourcesByOrg] Firestore query failed for uid:", uid, error);
+    
+    if (error?.code === "failed-precondition") {
+      console.error(
+        "[getResourcesByOrg] Missing composite index detected. " +
+        "This query requires an index on (createdBy, createdAt). " +
+        "Check browser console for Firestore index creation link."
+      );
+    }
+    
     return [];
   }
 }
@@ -237,13 +267,27 @@ export function filterResources(
 // ── Admin queries ─────────────────────────────────────────────────────────
 
 export async function getPendingResources(): Promise<Resource[]> {
-  const q = query(
-    collection(db, "resources"),
-    where("status", "==", "pending"),
-    orderBy("createdAt", "asc")
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Resource) }));
+  try {
+    const q = query(
+      collection(db, "resources"),
+      where("status", "==", "pending"),
+      orderBy("createdAt", "asc")
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Resource) }));
+  } catch (error: any) {
+    console.error("[getPendingResources] Firestore query failed:", error);
+    
+    if (error?.code === "failed-precondition") {
+      console.error(
+        "[getPendingResources] Missing composite index detected. " +
+        "This query requires an index on (status, createdAt). " +
+        "Check browser console for Firestore index creation link."
+      );
+    }
+    
+    return [];
+  }
 }
 
 export async function approveResource(id: string): Promise<void> {
@@ -263,13 +307,27 @@ export async function rejectResource(id: string, reason?: string): Promise<void>
 }
 
 export async function getOpenReports(): Promise<(Report & { id: string })[]> {
-  const q = query(
-    collection(db, "reports"),
-    where("status", "==", "open"),
-    orderBy("createdAt", "asc")
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Report) }));
+  try {
+    const q = query(
+      collection(db, "reports"),
+      where("status", "==", "open"),
+      orderBy("createdAt", "asc")
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Report) }));
+  } catch (error: any) {
+    console.error("[getOpenReports] Firestore query failed:", error);
+    
+    if (error?.code === "failed-precondition") {
+      console.error(
+        "[getOpenReports] Missing composite index detected. " +
+        "This query requires an index on (status, createdAt) in reports collection. " +
+        "Check browser console for Firestore index creation link."
+      );
+    }
+    
+    return [];
+  }
 }
 
 export async function resolveReport(id: string): Promise<void> {
@@ -279,7 +337,20 @@ export async function resolveReport(id: string): Promise<void> {
 }
 
 export async function getAllResources(): Promise<Resource[]> {
-  const q = query(collection(db, "resources"), orderBy("createdAt", "desc"));
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Resource) }));
+  try {
+    const q = query(collection(db, "resources"), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Resource) }));
+  } catch (error: any) {
+    console.error("[getAllResources] Firestore query failed:", error);
+    
+    if (error?.code === "failed-precondition") {
+      console.error(
+        "[getAllResources] Missing composite index detected. " +
+        "Check browser console for Firestore index creation link."
+      );
+    }
+    
+    return [];
+  }
 }

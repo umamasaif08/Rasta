@@ -57,7 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="en"
       className={`${fraunces.variable} ${inter.variable} ${ibmPlexMono.variable}`}
     >
-      <body className="min-h-screen flex flex-col bg-[var(--color-surface)] text-[var(--color-ink)] font-body antialiased">
+      <body suppressHydrationWarning className="min-h-screen flex flex-col bg-[var(--color-surface)] text-[var(--color-ink)] font-body antialiased">
         <AuthProvider>
           <Navbar />
 
