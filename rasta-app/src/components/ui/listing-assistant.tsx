@@ -6,6 +6,7 @@ import { MessageCircle, X, Send, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { updateDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { createNotification } from "@/lib/notifications";
 import type { Resource } from "@/types";
 import type { ChatMessage, ChatResponse } from "@/app/api/ai-chat/route";
 
@@ -143,6 +144,20 @@ export default function ListingAssistant({ resource, onNotesUpdated }: ListingAs
         aiReviewNotes: summary,
       });
       onNotesUpdated(summary);
+
+      // Create notification for the org
+      if (resource.createdBy) {
+        try {
+          await createNotification(
+            resource.createdBy,
+            "Your AI review is ready! Check your dashboard to see suggestions for improving your listing.",
+            "ai_review_ready"
+          );
+        } catch (error) {
+          console.error("[ListingAssistant] Failed to create notification:", error);
+          // Don't throw - summary was saved successfully
+        }
+      }
     } catch (err) {
       console.error("Failed to save summary:", err);
       setError("Summary generated but couldn't save to database. Please try refreshing.");

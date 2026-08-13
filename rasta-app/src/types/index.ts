@@ -24,6 +24,7 @@ export interface Resource {
   lastUpdated: Timestamp | null;
   verifiedAt: Timestamp | null;
   aiReviewNotes?: string;  // Summary from AI assistant chat
+  statusHistory?: { status: string; changedAt: string; reason?: string }[];  // Status change log
 }
 
 export interface OrgUser {
@@ -32,6 +33,7 @@ export interface OrgUser {
   email: string;
   role: UserRole;
   createdAt: Timestamp | null;
+  isAdmin?: boolean;  // Only set manually in Firestore console - default falsy/undefined
 }
 
 export interface Report {

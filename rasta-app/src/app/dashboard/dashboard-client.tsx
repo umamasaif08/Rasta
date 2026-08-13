@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Clock, CheckCircle2, XCircle, Image, Settings, ListChecks,
-  Sparkles, Calendar,
+  Sparkles, Calendar, Eye,
 } from "lucide-react";
 import { useRequireAuth } from "@/lib/auth-helpers";
 import { getResourcesByOrg } from "@/lib/resources";
@@ -25,9 +26,20 @@ const STATUS_META = {
 
 export default function DashboardClient() {
   const { user, orgUser, loading: authLoading } = useRequireAuth();
+  const router = useRouter();
   const [resources, setResources] = useState<Resource[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"listing" | "photos" | "settings" | "verification">("listing");
+  const [activeTab, setActiveTab] = useState<"listing" | "preview" | "photos" | "settings" | "verification">("listing");
+
+  // Guard: redirect admin users to /admin
+  useEffect(() => {
+    if (authLoading) return;
+    
+    if (orgUser?.isAdmin) {
+      console.log("[Dashboard] Admin user detected, redirecting to /admin");
+      router.replace("/admin");
+    }
+  }, [authLoading, orgUser, router]);
 
   useEffect(() => {
     if (!user) return;
@@ -53,6 +65,9 @@ export default function DashboardClient() {
       </div>
     );
   }
+
+  // Don't render for admin users
+  if (orgUser?.isAdmin) return null;
 
   const primaryResource = resources.find((r) => r.status === "approved") || resources[0];
 
@@ -128,9 +143,10 @@ export default function DashboardClient() {
             transition={{ delay: 0.3 }}
             className="mb-6"
           >
-            <nav className="flex gap-2 border-b border-[var(--color-teal-light)]" aria-label="Dashboard sections">
+            <nav className="flex gap-2 border-b border-[var(--color-teal-light)] overflow-x-auto" aria-label="Dashboard sections">
               {[
                 { id: "listing" as const, label: "Edit Listing", icon: ListChecks },
+                { id: "preview" as const, label: "View Public", icon: Eye },
                 { id: "photos" as const, label: "Photos", icon: Image },
                 { id: "settings" as const, label: "Account", icon: Settings },
                 { id: "verification" as const, label: "Verification", icon: CheckCircle2 },
@@ -203,6 +219,24 @@ export default function DashboardClient() {
                   }}
                 />
               </>
+            )}
+
+            {/* View Public Listing - Link */}
+            {activeTab === "preview" && (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Eye className="h-12 w-12 mx-auto mb-4 text-[var(--color-teal)]" aria-hidden />
+                  <p className="text-sm text-[var(--color-ink-muted)] mb-4">
+                    View how your listing appears to visitors
+                  </p>
+                  <a
+                    href="/dashboard/listing"
+                    className="inline-block rounded-[var(--radius-btn)] bg-[var(--color-teal)] px-6 py-2.5 text-white font-medium hover:bg-[var(--color-teal-dark)] transition-colors"
+                  >
+                    View Public Preview
+                  </a>
+                </CardContent>
+              </Card>
             )}
 
             {/* Section 4: Photos */}

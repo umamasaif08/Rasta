@@ -1,16 +1,17 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle2, XCircle, Clock, Flag, ShieldCheck,
   ChevronDown, ChevronUp, MapPin, Phone, Languages,
-  AlertTriangle, RefreshCw,
+  AlertTriangle, RefreshCw, History as HistoryIcon, Search,
 } from "lucide-react";
 import { useRequireAuth } from "@/lib/auth-helpers";
 import {
   getPendingResources, approveResource, rejectResource,
-  getOpenReports, resolveReport,
+  getOpenReports, resolveReport, getAllResources,
 } from "@/lib/resources";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,11 +28,6 @@ const fadeUp = {
     transition: { delay: i * 0.07, duration: 0.35, ease: "easeOut" as const },
   }),
   exit: { opacity: 0, x: -32, transition: { duration: 0.25 } },
-};
-
-const tabIndicator = {
-  pending: { x: 0 },
-  reports: { x: "100%" },
 };
 
 // ── Pending card ──────────────────────────────────────────────────────────
@@ -299,24 +295,51 @@ function Skeleton({ count = 3 }: { count?: number }) {
 
 // ── Main admin client ─────────────────────────────────────────────────────
 
-type Tab = "pending" | "reports";
+type Tab = "pending" | "reports" | "history";
 
 export default function AdminClient() {
-  const { orgUser, loading: authLoading } = useRequireAuth("admin");
+  const { user, orgUser, loading: authLoading } = useRequireAuth(); // Remove "admin" role check
+  const router = useRouter();
 
   const [tab,        setTab]        = useState<Tab>("pending");
   const [pending,    setPending]    = useState<Resource[]>([]);
   const [reports,    setReports]    = useState<(Report & { id: string })[]>([]);
+  const [allResources, setAllResources] = useState<Resource[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [error,      setError]      = useState<string | null>(null);
+  
+  // History tab filters
+  const [historySearch, setHistorySearch] = useState("");
+  const [historyStatusFilter, setHistoryStatusFilter] = useState<string>("all");
+
+  // Guard: redirect non-admin users to dashboard
+  useEffect(() => {
+    if (authLoading) return;
+    
+    // If not logged in, useRequireAuth will handle redirect to /login
+    // If logged in but not isAdmin, redirect to dashboard
+    if (orgUser && !orgUser.isAdmin) {
+      console.error(
+        "[Admin] Access denied: isAdmin is not true for this user.",
+        "User:",
+        { uid: orgUser.uid, email: orgUser.email, isAdmin: orgUser.isAdmin }
+      );
+      router.replace("/dashboard");
+    }
+  }, [authLoading, orgUser, router]);
 
   const loadData = useCallback(async () => {
     setLoadingData(true);
     setError(null);
     try {
-      const [p, r] = await Promise.all([getPendingResources(), getOpenReports()]);
+      const [p, r, all] = await Promise.all([
+        getPendingResources(), 
+        getOpenReports(),
+        getAllResources(),
+      ]);
       setPending(p);
       setReports(r);
+      setAllResources(all);
     } catch {
       setError("Failed to load data. Check your connection.");
     } finally {
@@ -325,11 +348,11 @@ export default function AdminClient() {
   }, []);
 
   useEffect(() => {
-    if (!authLoading && orgUser?.role === "admin") loadData();
+    if (!authLoading && orgUser?.isAdmin) loadData();
   }, [authLoading, orgUser, loadData]);
 
   if (authLoading) return <Skeleton />;
-  if (!orgUser || orgUser.role !== "admin") return null;
+  if (!orgUser || !orgUser.isAdmin) return null;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
@@ -363,14 +386,8 @@ export default function AdminClient() {
 
       {/* Tab switcher */}
       <div className="relative mb-6">
-        <div className="flex rounded-[var(--radius-btn)] bg-[var(--color-surface-2)] border border-[var(--color-teal-light)] p-1 overflow-hidden">
-          {/* Animated sliding pill */}
-          <motion.div
-            className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-[6px] bg-[var(--color-teal)] shadow-sm"
-            animate={tabIndicator[tab]}
-            transition={{ type: "spring", stiffness: 400, damping: 32 }}
-          />
-          {(["pending", "reports"] as Tab[]).map((t) => (
+        <div className="relative flex rounded-[var(--radius-btn)] bg-[var(--color-surface-2)] border border-[var(--color-teal-light)] p-1 overflow-hidden">
+          {(["pending", "reports", "history"] as Tab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -379,7 +396,16 @@ export default function AdminClient() {
                 tab === t ? "text-white" : "text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]"
               }`}
             >
-              {t === "pending" ? (
+              {/* Animated sliding pill - only rendered under active tab */}
+              {tab === t && (
+                <motion.div
+                  layoutId="admin-tab-indicator"
+                  className="absolute inset-0 rounded-[6px] bg-[var(--color-teal)] shadow-sm -z-10"
+                  transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                />
+              )}
+              
+              {t === "pending" && (
                 <>
                   <Clock className="h-3.5 w-3.5" />
                   Pending
@@ -389,7 +415,8 @@ export default function AdminClient() {
                     </span>
                   )}
                 </>
-              ) : (
+              )}
+              {t === "reports" && (
                 <>
                   <Flag className="h-3.5 w-3.5" />
                   Reports
@@ -398,6 +425,12 @@ export default function AdminClient() {
                       {reports.length}
                     </span>
                   )}
+                </>
+              )}
+              {t === "history" && (
+                <>
+                  <HistoryIcon className="h-3.5 w-3.5" />
+                  History
                 </>
               )}
             </button>
@@ -486,7 +519,221 @@ export default function AdminClient() {
             )}
           </motion.div>
         )}
+
+        {tab === "history" && (
+          <motion.div
+            key="history"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.2 }}
+          >
+            {loadingData ? (
+              <Skeleton />
+            ) : (
+              <HistoryView
+                resources={allResources}
+                searchQuery={historySearch}
+                onSearchChange={setHistorySearch}
+                statusFilter={historyStatusFilter}
+                onStatusFilterChange={setHistoryStatusFilter}
+              />
+            )}
+          </motion.div>
+        )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+// ── History view ──────────────────────────────────────────────────────────
+
+interface HistoryEntry {
+  resourceId: string;
+  resourceName: string;
+  status: string;
+  changedAt: string;
+  reason?: string;
+}
+
+function HistoryView({
+  resources,
+  searchQuery,
+  onSearchChange,
+  statusFilter,
+  onStatusFilterChange,
+}: {
+  resources: Resource[];
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  statusFilter: string;
+  onStatusFilterChange: (status: string) => void;
+}) {
+  // Flatten all status history entries from all resources
+  const allHistory: HistoryEntry[] = resources.flatMap((resource) => {
+    if (resource.statusHistory && resource.statusHistory.length > 0) {
+      return resource.statusHistory.map((entry) => ({
+        resourceId: resource.id || "",
+        resourceName: resource.name,
+        status: entry.status,
+        changedAt: entry.changedAt,
+        reason: entry.reason,
+      }));
+    } else {
+      // Fallback for resources without statusHistory
+      return [
+        {
+          resourceId: resource.id || "",
+          resourceName: resource.name,
+          status: resource.status,
+          changedAt: resource.createdAt
+            ? new Date(resource.createdAt.toDate()).toISOString()
+            : new Date().toISOString(),
+          reason: undefined,
+        },
+      ];
+    }
+  });
+
+  // Sort by date, most recent first
+  const sorted = allHistory.sort((a, b) => {
+    return new Date(b.changedAt).getTime() - new Date(a.changedAt).getTime();
+  });
+
+  // Apply filters
+  const filtered = sorted.filter((entry) => {
+    const matchesSearch =
+      searchQuery === "" ||
+      entry.resourceName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" || entry.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  // Format date
+  function formatDate(isoString: string) {
+    try {
+      const date = new Date(isoString);
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    } catch {
+      return isoString;
+    }
+  }
+
+  // Status badge color
+  function getStatusColor(status: string) {
+    switch (status) {
+      case "approved":
+        return "text-[var(--color-teal)] bg-[var(--color-teal-light)]";
+      case "pending":
+        return "text-[var(--color-sand)] bg-[var(--color-sand-light)]";
+      case "rejected":
+        return "text-[var(--color-terracotta)] bg-[var(--color-terracotta-light)]";
+      default:
+        return "text-[var(--color-ink-muted)] bg-[var(--color-surface-2)]";
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Filters */}
+      <Card animate={false}>
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Search */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--color-ink-faint)]" />
+              <Input
+                type="text"
+                placeholder="Search by organization name..."
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="pl-9 h-9 text-sm"
+              />
+            </div>
+
+            {/* Status filter */}
+            <select
+              value={statusFilter}
+              onChange={(e) => onStatusFilterChange(e.target.value)}
+              className="h-9 rounded-[var(--radius-btn)] border border-[var(--color-teal-light)] bg-[var(--color-surface)] px-3 text-sm text-[var(--color-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-teal)]"
+            >
+              <option value="all">All statuses</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* History list */}
+      {filtered.length === 0 ? (
+        <EmptyState
+          icon={HistoryIcon}
+          title="No history found"
+          body="Try adjusting your search or filters."
+          iconColor="text-[var(--color-ink-muted)]"
+        />
+      ) : (
+        <div className="space-y-2">
+          <AnimatePresence mode="popLayout">
+            {filtered.map((entry, i) => (
+              <motion.div
+                key={`${entry.resourceId}-${entry.changedAt}-${i}`}
+                custom={i}
+                variants={fadeUp}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                layout
+              >
+                <Card animate={false} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-[var(--color-ink)] mb-1 truncate">
+                          {entry.resourceName}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--color-ink-muted)]">
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded-full font-medium capitalize ${getStatusColor(
+                              entry.status
+                            )}`}
+                          >
+                            {entry.status}
+                          </span>
+                          <span>·</span>
+                          <Clock className="h-3 w-3 inline" aria-hidden />
+                          <span>{formatDate(entry.changedAt)}</span>
+                          {!resources.find((r) => r.id === entry.resourceId)
+                            ?.statusHistory && (
+                            <>
+                              <span>·</span>
+                              <span className="text-[var(--color-ink-faint)] italic">
+                                (history not tracked before this date)
+                              </span>
+                            </>
+                          )}
+                        </div>
+                        {entry.reason && (
+                          <p className="text-xs text-[var(--color-ink-muted)] mt-2 italic">
+                            Reason: {entry.reason}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 }

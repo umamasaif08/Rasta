@@ -5,15 +5,25 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, MapPin, LogIn } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import NotificationsDropdown from "@/components/ui/notifications-dropdown";
 
-const navLinks = [
-  { href: "/resources",      label: "Find Resources" },
+const publicNavLinks = [
+  { href: "/resources",      label: "Resources" },
   { href: "/low-bandwidth",  label: "Plain text" },
+];
+
+const orgNavLinks = [
+  { href: "/dashboard",           label: "Dashboard" },
+  { href: "/dashboard?tab=verification", label: "Verification" },
+  { href: "/help",                label: "Help" },
 ];
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { user, orgUser, signOut } = useAuth();
+
+  // Use org-specific nav links if this is an org user (not admin)
+  const navLinks = orgUser && !orgUser.isAdmin ? orgNavLinks : publicNavLinks;
 
   return (
     <>
@@ -63,11 +73,15 @@ export default function Navbar() {
             {user ? (
               <>
                 <Link
-                  href={orgUser?.role === "admin" ? "/admin" : "/dashboard"}
+                  href={orgUser?.isAdmin ? "/admin" : "/dashboard"}
                   className="text-sm opacity-90 hover:opacity-100 hover:underline underline-offset-4"
                 >
-                  {orgUser?.role === "admin" ? "Admin" : (orgUser?.orgName ?? "Dashboard")}
+                  {orgUser?.isAdmin ? "Admin" : (orgUser?.orgName ?? "Dashboard")}
                 </Link>
+                {/* Notifications bell — only for org users */}
+                {orgUser && !orgUser.isAdmin && user.uid && (
+                  <NotificationsDropdown orgId={user.uid} />
+                )}
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={() => signOut()}

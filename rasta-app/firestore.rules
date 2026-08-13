@@ -8,7 +8,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
     function isOwner(resourceData) {
@@ -53,6 +53,25 @@ service cloud.firestore {
       // Only admin can read or resolve reports
       // (reporter contact info must never be publicly readable)
       allow read, update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ─── Notifications ──────────────────────────────────────────────────
+    match /notifications/{notificationId} {
+      // Orgs can only read their own notifications
+      allow read: if isSignedIn() && request.auth.uid == resource.data.orgId;
+      
+      // Orgs can mark their own notifications as read
+      allow update: if isSignedIn() 
+                    && request.auth.uid == resource.data.orgId
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      
+      // Admin can create any notification
+      // Orgs can create notifications for themselves (e.g., AI review completion)
+      allow create: if isAdmin() 
+                    || (isSignedIn() && request.resource.data.orgId == request.auth.uid);
+      
+      // Only admin can delete notifications
       allow delete: if isAdmin();
     }
   }

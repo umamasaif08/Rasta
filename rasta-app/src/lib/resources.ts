@@ -9,10 +9,12 @@ import {
   addDoc,
   updateDoc,
   serverTimestamp,
+  arrayUnion,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { DUMMY_RESOURCES } from "@/data/resources";
 import type { Resource, ResourceSummary, Report } from "@/types";
+import { createNotification } from "@/lib/notifications";
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
@@ -165,7 +167,7 @@ export async function getResourcesByOrg(uid: string): Promise<Resource[]> {
 // ── Write operations ──────────────────────────────────────────────────────
 
 export async function createResource(
-  data: Omit<Resource, "id" | "createdAt" | "lastUpdated" | "verifiedAt" | "status">
+  data: Omit<Resource, "id" | "createdAt" | "lastUpdated" | "verifiedAt" | "status" | "statusHistory">
 ): Promise<string> {
   const ref = await addDoc(collection(db, "resources"), {
     ...data,
@@ -173,6 +175,12 @@ export async function createResource(
     createdAt: serverTimestamp(),
     lastUpdated: serverTimestamp(),
     verifiedAt: null,
+    statusHistory: [
+      {
+        status: "pending",
+        changedAt: new Date().toISOString(),
+      },
+    ],
   });
   return ref.id;
 }
@@ -291,19 +299,73 @@ export async function getPendingResources(): Promise<Resource[]> {
 }
 
 export async function approveResource(id: string): Promise<void> {
+  // Get resource to find orgId
+  const resourceDoc = await getDoc(doc(db, "resources", id));
+  const resourceData = resourceDoc.data() as Resource | undefined;
+  
   await updateDoc(doc(db, "resources", id), {
     status: "approved",
     verifiedAt: serverTimestamp(),
     lastUpdated: serverTimestamp(),
+    statusHistory: arrayUnion({
+      status: "approved",
+      changedAt: new Date().toISOString(),
+    }),
   });
+
+  // Create notification for the org
+  if (resourceData?.createdBy) {
+    try {
+      await createNotification(
+        resourceData.createdBy,
+        "Your listing was approved and is now live!",
+        "status_change"
+      );
+    } catch (error) {
+      console.error("[approveResource] Failed to create notification:", error);
+      // Don't throw - approval succeeded, notification is secondary
+    }
+  }
 }
 
 export async function rejectResource(id: string, reason?: string): Promise<void> {
+  // Get resource to find orgId
+  const resourceDoc = await getDoc(doc(db, "resources", id));
+  const resourceData = resourceDoc.data() as Resource | undefined;
+  
+  const historyEntry: { status: string; changedAt: string; reason?: string } = {
+    status: "rejected",
+    changedAt: new Date().toISOString(),
+  };
+  
+  if (reason) {
+    historyEntry.reason = reason;
+  }
+  
   await updateDoc(doc(db, "resources", id), {
     status: "rejected",
     lastUpdated: serverTimestamp(),
+    statusHistory: arrayUnion(historyEntry),
     ...(reason ? { rejectionReason: reason } : {}),
   });
+
+  // Create notification for the org
+  if (resourceData?.createdBy) {
+    const message = reason
+      ? `Your listing needs changes: ${reason}`
+      : "Your listing needs changes. Please review and resubmit.";
+    
+    try {
+      await createNotification(
+        resourceData.createdBy,
+        message,
+        "status_change"
+      );
+    } catch (error) {
+      console.error("[rejectResource] Failed to create notification:", error);
+      // Don't throw - rejection succeeded, notification is secondary
+    }
+  }
 }
 
 export async function getOpenReports(): Promise<(Report & { id: string })[]> {
