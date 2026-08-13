@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import { getFirestore, type Firestore } from "firebase/firestore";
-import { getAuth, type Auth } from "firebase/auth";
+import { getAuth, setPersistence, browserSessionPersistence, type Auth } from "firebase/auth";
 
 // Firebase client config — safe to be public.
 // Real security lives entirely in Firestore Security Rules.
@@ -44,11 +44,25 @@ export function getDb(): Firestore {
 }
 
 export function getAuthInstance(): Auth {
-  if (!_auth) _auth = getAuth(app);
+  if (!_auth) {
+    _auth = getAuth(app);
+    // Set session persistence: user stays logged in only for current browser session
+    // Auth state is cleared when browser/tab is closed
+    setPersistence(_auth, browserSessionPersistence).catch((err) => {
+      console.error("[firebase] Failed to set session persistence:", err);
+    });
+  }
   return _auth;
 }
 
 // Convenience direct exports for client components
 export const db   = getFirestore(app);
-export const auth = getAuth(app);
+export const auth = (() => {
+  const authInstance = getAuth(app);
+  // Set session persistence on the default export too
+  setPersistence(authInstance, browserSessionPersistence).catch((err) => {
+    console.error("[firebase] Failed to set session persistence:", err);
+  });
+  return authInstance;
+})();
 export default app;

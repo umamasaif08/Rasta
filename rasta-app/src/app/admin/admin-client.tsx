@@ -386,13 +386,13 @@ export default function AdminClient() {
 
       {/* Tab switcher */}
       <div className="relative mb-6">
-        <div className="relative flex rounded-[var(--radius-btn)] bg-[var(--color-surface-2)] border border-[var(--color-teal-light)] p-1 overflow-hidden">
+        <div className="relative flex flex-wrap sm:flex-nowrap rounded-[var(--radius-btn)] bg-[var(--color-surface-2)] border border-[var(--color-teal-light)] p-1 gap-1 sm:gap-0 overflow-hidden">
           {(["pending", "reports", "history"] as Tab[]).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               aria-selected={tab === t}
-              className={`relative z-10 flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-[6px] transition-colors ${
+              className={`relative z-10 flex-1 min-w-[110px] flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium rounded-[6px] transition-colors ${
                 tab === t ? "text-white" : "text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]"
               }`}
             >
@@ -407,8 +407,9 @@ export default function AdminClient() {
               
               {t === "pending" && (
                 <>
-                  <Clock className="h-3.5 w-3.5" />
-                  Pending
+                  <Clock className="h-3.5 w-3.5 hidden xs:inline-block" />
+                  <span className="sm:hidden">Pending</span>
+                  <span className="hidden sm:inline">Pending</span>
                   {pending.length > 0 && (
                     <span className={`ml-1 rounded-full px-1.5 py-0.5 text-xs font-mono ${tab === "pending" ? "bg-white/20" : "bg-[var(--color-sand)] text-[var(--color-ink)]"}`}>
                       {pending.length}

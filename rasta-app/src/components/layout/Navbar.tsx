@@ -3,27 +3,38 @@
 import Link from "next/link";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, MapPin, LogIn } from "lucide-react";
+import { Menu, X, MapPin } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import NotificationsDropdown from "@/components/ui/notifications-dropdown";
 
 const publicNavLinks = [
   { href: "/resources",      label: "Resources" },
   { href: "/low-bandwidth",  label: "Plain text" },
+  { href: "/help",           label: "Help" },
 ];
 
 const orgNavLinks = [
-  { href: "/dashboard",           label: "Dashboard" },
-  { href: "/dashboard?tab=verification", label: "Verification" },
-  { href: "/help",                label: "Help" },
+  { href: "/dashboard",      label: "Dashboard" },
+  { href: "/resources",      label: "Resources" },
+  { href: "/help",           label: "Help" },
+];
+
+const adminNavLinks = [
+  { href: "/admin",          label: "Admin Panel" },
+  { href: "/resources",      label: "Resources" },
+  { href: "/help",           label: "Help" },
 ];
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { user, orgUser, signOut } = useAuth();
 
-  // Use org-specific nav links if this is an org user (not admin)
-  const navLinks = orgUser && !orgUser.isAdmin ? orgNavLinks : publicNavLinks;
+  // Role-based navigation links
+  const navLinks = orgUser?.isAdmin 
+    ? adminNavLinks 
+    : (orgUser && !orgUser.isAdmin) 
+      ? orgNavLinks 
+      : publicNavLinks;
 
   return (
     <>
@@ -92,24 +103,21 @@ export default function Navbar() {
                 </motion.button>
               </>
             ) : (
-              <>
-                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                  <Link
-                    href="/register"
-                    className="rounded-[var(--radius-btn)] bg-white/15 px-4 py-1.5 text-sm font-medium hover:bg-white/25 transition-colors"
-                  >
-                    Register Your Org
-                  </Link>
-                </motion.div>
+              <div className="flex items-center gap-2 text-sm">
                 <Link
                   href="/login"
-                  className="flex items-center gap-1.5 text-sm opacity-80 hover:opacity-100 transition-opacity"
-                  aria-label="Organisation login"
+                  className="opacity-80 hover:opacity-100 transition-opacity hover:underline underline-offset-2"
                 >
-                  <LogIn className="h-4 w-4" aria-hidden />
-                  Org Login
+                  Log in
                 </Link>
-              </>
+                <span className="opacity-50">/</span>
+                <Link
+                  href="/register"
+                  className="opacity-80 hover:opacity-100 transition-opacity hover:underline underline-offset-2"
+                >
+                  Sign up
+                </Link>
+              </div>
             )}
           </div>
 
@@ -182,18 +190,18 @@ export default function Navbar() {
                   ) : (
                     <div className="flex flex-col gap-2">
                       <Link
-                        href="/register"
+                        href="/login"
                         className="block py-1.5 opacity-90 hover:opacity-100"
                         onClick={() => setMenuOpen(false)}
                       >
-                        Register Your Org
+                        Log in
                       </Link>
                       <Link
-                        href="/login"
+                        href="/register"
                         className="block py-1.5 opacity-70 hover:opacity-100"
                         onClick={() => setMenuOpen(false)}
                       >
-                        Org Login
+                        Sign up
                       </Link>
                     </div>
                   )}

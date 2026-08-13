@@ -246,7 +246,14 @@ export default function DashboardClient() {
 
             {/* Section 5: Account Settings */}
             {activeTab === "settings" && user && (
-              <AccountSettings user={user} orgUser={orgUser} />
+              <AccountSettings 
+                user={user} 
+                orgUser={orgUser}
+                resource={primaryResource}
+                onResourceUpdated={(data) => {
+                  if (primaryResource?.id) patchResource(primaryResource.id, data);
+                }}
+              />
             )}
 
             {/* Section 6: Verification Checklist */}

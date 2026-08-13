@@ -5,19 +5,22 @@ import { User } from "firebase/auth";
 import { updateEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Settings, Mail, Lock, UserCircle, AlertCircle } from "lucide-react";
+import { updateResource } from "@/lib/resources";
+import { Settings, Mail, Lock, UserCircle, AlertCircle, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { OrgUser } from "@/types";
+import type { OrgUser, Resource } from "@/types";
 
 interface AccountSettingsProps {
   user: User;
   orgUser: OrgUser | null;
+  resource?: Resource;
+  onResourceUpdated?: (data: Partial<Resource>) => void;
 }
 
-export default function AccountSettings({ user, orgUser }: AccountSettingsProps) {
+export default function AccountSettings({ user, orgUser, resource, onResourceUpdated }: AccountSettingsProps) {
   // Email change
   const [newEmail, setNewEmail] = useState("");
   const [emailPassword, setEmailPassword] = useState("");
@@ -38,6 +41,12 @@ export default function AccountSettings({ user, orgUser }: AccountSettingsProps)
   const [contactLoading, setContactLoading] = useState(false);
   const [contactError, setContactError] = useState<string | null>(null);
   const [contactSuccess, setContactSuccess] = useState(false);
+
+  // Organization Bio
+  const [bio, setBio] = useState(resource?.description || "");
+  const [bioLoading, setBioLoading] = useState(false);
+  const [bioError, setBioError] = useState<string | null>(null);
+  const [bioSuccess, setBioSuccess] = useState(false);
 
   async function handleEmailChange() {
     if (!newEmail || !emailPassword) {
@@ -147,6 +156,38 @@ export default function AccountSettings({ user, orgUser }: AccountSettingsProps)
     }
   }
 
+  async function handleBioChange() {
+    if (!resource?.id) {
+      setBioError("No resource found to update");
+      return;
+    }
+
+    if (!bio.trim()) {
+      setBioError("Bio cannot be empty");
+      return;
+    }
+
+    setBioLoading(true);
+    setBioError(null);
+    setBioSuccess(false);
+
+    try {
+      await updateResource(resource.id, {
+        description: bio.trim(),
+      });
+      
+      if (onResourceUpdated) {
+        onResourceUpdated({ description: bio.trim() });
+      }
+      
+      setBioSuccess(true);
+    } catch (err) {
+      setBioError(err instanceof Error ? err.message : "Failed to update bio");
+    } finally {
+      setBioLoading(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Contact Person */}
@@ -189,6 +230,58 @@ export default function AccountSettings({ user, orgUser }: AccountSettingsProps)
           </Button>
         </CardContent>
       </Card>
+
+      {/* Organization Bio */}
+      {resource && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-[var(--color-teal)]" aria-hidden />
+              <CardTitle>Organization Bio</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-[var(--color-ink-muted)]">
+              This description appears on your public listing when visitors flip your card.
+            </p>
+
+            <div>
+              <Label htmlFor="org-bio" className="mb-1.5 block">
+                Description
+              </Label>
+              <textarea
+                id="org-bio"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Tell visitors about your organization, services, and mission..."
+                rows={6}
+                className="w-full rounded-[var(--radius-btn)] border border-[var(--color-teal-light)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-ink-faint)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-teal)] resize-vertical"
+              />
+              <p className="text-xs text-[var(--color-ink-muted)] mt-1">
+                {bio.length} characters
+              </p>
+            </div>
+
+            {bioError && (
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-[var(--color-terracotta-light)] border border-[var(--color-terracotta)] text-[var(--color-terracotta)]">
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" aria-hidden />
+                <p className="text-sm">{bioError}</p>
+              </div>
+            )}
+
+            {bioSuccess && (
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-[var(--color-teal-light)] border border-[var(--color-teal)] text-[var(--color-teal)]">
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" aria-hidden />
+                <p className="text-sm">Bio updated successfully</p>
+              </div>
+            )}
+
+            <Button onClick={handleBioChange} disabled={bioLoading}>
+              {bioLoading ? "Saving..." : "Save Bio"}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Email Change */}
       <Card>

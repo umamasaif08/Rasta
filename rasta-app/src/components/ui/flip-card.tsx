@@ -96,34 +96,34 @@ export default function FlipCard({ org, index = 0 }: FlipCardProps) {
             {/* Invisible overlays for click handling */}
             <Link
               href={`/organisations/${org.id}`}
-              className="absolute inset-0 z-20 rounded-[var(--radius-card)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-teal)]"
+              className="absolute inset-0 z-20 rounded-[var(--radius-card)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-teal)] focus-visible:ring-offset-2"
               aria-label={`View ${org.name} details`}
               onDoubleClick={(e) => { e.preventDefault(); e.stopPropagation(); setFlipped(true); }}
             />
 
-            {/* Double-click overlay — higher z-index to catch double-clicks */}
-            <div
-              className="absolute inset-0 z-30 rounded-[var(--radius-card)]"
-              onDoubleClick={(e) => { e.preventDefault(); e.stopPropagation(); setFlipped(true); }}
+            {/* Flip button - keyboard accessible */}
+            <button
+              className="absolute top-2 right-2 z-30 p-1.5 rounded-full bg-white/90 hover:bg-white shadow-sm hover:shadow-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-teal)]"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setFlipped(true); }}
               aria-label={`Show more about ${org.name}`}
-              role="button"
-              tabIndex={-1}
-            />
+              aria-pressed={flipped}
+              title="Show more details (or double-click card)"
+            >
+              <RotateCcw className="h-3.5 w-3.5 text-[var(--color-ink)]" aria-hidden />
+            </button>
           </div>
         </div>
 
         {/* ── BACK — click anywhere to flip back ────────────────────── */}
-        <div
-          className="absolute inset-0 rounded-[var(--radius-card)] cursor-pointer"
+        <button
+          className="absolute inset-0 rounded-[var(--radius-card)] cursor-pointer w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
           style={{
             backfaceVisibility: "hidden",
             transform: "rotateY(180deg)",
           }}
           onClick={() => setFlipped(false)}
-          onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setFlipped(false)}
-          role="button"
-          tabIndex={0}
-          aria-label="Flip back to front"
+          aria-label={`Flip back to front of ${org.name} card`}
+          aria-pressed={flipped}
         >
           <div
             className="h-full rounded-[var(--radius-card)] p-5 flex flex-col justify-between overflow-hidden text-white hover:brightness-110 transition-all duration-200"
@@ -185,7 +185,7 @@ export default function FlipCard({ org, index = 0 }: FlipCardProps) {
               </div>
             </div>
           </div>
-        </div>
+        </button>
       </div>
     </motion.div>
   );

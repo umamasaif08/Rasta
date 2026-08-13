@@ -39,6 +39,20 @@ export default function ListingAssistant({ resource, onNotesUpdated }: ListingAs
     }
   }, [open, done]);
 
+  // Close modal on Escape key
+  useEffect(() => {
+    if (!open) return;
+
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [open]);
+
   async function startChat() {
     setOpen(true);
     setMessages([]);
@@ -202,12 +216,15 @@ export default function ListingAssistant({ resource, onNotesUpdated }: ListingAs
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               onClick={(e) => e.stopPropagation()}
               className="w-full max-w-lg bg-[var(--color-surface)] rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[600px]"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="chat-title"
             >
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-[var(--color-teal-light)]">
                 <div className="flex items-center gap-2">
                   <MessageCircle className="h-5 w-5 text-[var(--color-teal)]" aria-hidden />
-                  <h2 className="font-semibold text-[var(--color-ink)]">
+                  <h2 id="chat-title" className="font-semibold text-[var(--color-ink)]">
                     Listing Assistant
                   </h2>
                 </div>
@@ -255,7 +272,10 @@ export default function ListingAssistant({ resource, onNotesUpdated }: ListingAs
                 )}
 
                 {error && (
-                  <div className="bg-[var(--color-terracotta-light)] border border-[var(--color-terracotta)] text-[var(--color-terracotta)] rounded-lg px-3 py-2 text-sm">
+                  <div 
+                    className="bg-[var(--color-terracotta-light)] border border-[var(--color-terracotta)] text-[var(--color-terracotta)] rounded-lg px-3 py-2 text-sm"
+                    role="alert"
+                  >
                     {error}
                   </div>
                 )}
