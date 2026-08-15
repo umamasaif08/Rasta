@@ -26,11 +26,16 @@ export default function ListingAssistant({ resource, onNotesUpdated }: ListingAs
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const prevMessageCountRef = useRef(0);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    // Only scroll if message count increased (new message added)
+    if (messages.length > prevMessageCountRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+    prevMessageCountRef.current = messages.length;
+  }, [messages.length]);
 
   // Focus input when chat opens
   useEffect(() => {

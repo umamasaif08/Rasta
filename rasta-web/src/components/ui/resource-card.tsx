@@ -124,7 +124,7 @@ export default function ResourceCard({ resource, index = 0 }: ResourceCardProps)
               WebkitBackfaceVisibility: "hidden", // Safari support
             }}
           >
-            <div className="h-full rounded-[var(--radius-card)] border border-[var(--color-teal-light)] bg-[var(--color-surface)] shadow-sm overflow-hidden flex flex-col">
+            <div className="h-full min-h-[300px] rounded-[var(--radius-card)] border border-[var(--color-teal-light)] bg-[var(--color-surface)] shadow-sm overflow-y-auto flex flex-col max-h-[500px]">
               {/* Coloured top stripe */}
               <div
                 style={{ background: meta.accent }}
@@ -190,7 +190,7 @@ export default function ResourceCard({ resource, index = 0 }: ResourceCardProps)
             }}
           >
             <div
-              className="h-full rounded-[var(--radius-card)] p-5 flex flex-col text-white overflow-hidden"
+              className="h-full min-h-[300px] rounded-[var(--radius-card)] p-5 flex flex-col text-white overflow-y-auto max-h-[500px]"
               style={{
                 background: `linear-gradient(135deg, ${meta.accent} 0%, color-mix(in srgb, ${meta.accent} 70%, #000) 100%)`,
               }}
@@ -212,7 +212,7 @@ export default function ResourceCard({ resource, index = 0 }: ResourceCardProps)
 
               {/* Description */}
               <div className="flex-1 mb-4">
-                <p className="text-xs text-white/90 leading-relaxed">
+                <p className="text-xs text-white/90 leading-relaxed line-clamp-5">
                   {resource.description}
                 </p>
               </div>

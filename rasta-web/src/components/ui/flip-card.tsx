@@ -126,7 +126,7 @@ export default function FlipCard({ org, index = 0 }: FlipCardProps) {
           aria-pressed={flipped}
         >
           <div
-            className="h-full rounded-[var(--radius-card)] p-5 flex flex-col justify-between overflow-hidden text-white hover:brightness-110 transition-all duration-200"
+            className="h-full min-h-[300px] rounded-[var(--radius-card)] p-5 flex flex-col justify-between overflow-y-auto max-h-[500px] text-white hover:brightness-110 transition-all duration-200"
             style={{
               background: `linear-gradient(135deg, ${org.color} 0%, color-mix(in srgb, ${org.color} 65%, #000) 100%)`,
             }}
@@ -136,7 +136,7 @@ export default function FlipCard({ org, index = 0 }: FlipCardProps) {
                 <h3 className="font-semibold text-white text-sm leading-snug">{org.name}</h3>
                 <RotateCcw className="h-3.5 w-3.5 text-white/60" aria-hidden />
               </div>
-              <p className="text-xs text-white/85 leading-relaxed line-clamp-4">{org.description}</p>
+              <p className="text-xs text-white/85 leading-relaxed line-clamp-5">{org.description}</p>
             </div>
 
             <div className="space-y-3">
