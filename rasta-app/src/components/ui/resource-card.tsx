@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { Phone, MapPin, Clock, Globe2, Users, Baby, Navigation } from "lucide-react";
+import { Phone, MapPin, Clock, Globe2, Users, Baby, Navigation, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import AiVerifiedBadge from "@/components/ui/ai-verified-badge";
 import type { ResourceSummary, ResourceCategory } from "@/types";
@@ -83,6 +84,12 @@ export default function ResourceCard({ resource, index = 0 }: ResourceCardProps)
       return;
     }
     setFlipped(!flipped);
+  };
+
+  const handleDetailViewClick = (e: React.MouseEvent) => {
+    // Stop propagation so this doesn't trigger a flip-back
+    e.stopPropagation();
+    // Navigation handled by the Link component
   };
 
   return (
@@ -195,7 +202,7 @@ export default function ResourceCard({ resource, index = 0 }: ResourceCardProps)
                     {meta.label}
                   </Badge>
                   <span className="text-xs text-white/60 font-medium">
-                    Click to flip back
+                    Click outside buttons to flip back
                   </span>
                 </div>
                 <h3 className="font-semibold text-white text-sm leading-snug">
@@ -230,25 +237,35 @@ export default function ResourceCard({ resource, index = 0 }: ResourceCardProps)
                 )}
 
                 {/* Action buttons */}
-                <div className="flex gap-2 pt-2">
-                  <a
-                    href={mapsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 flex-1 justify-center py-2 px-3 text-xs font-medium text-white bg-white/20 hover:bg-white/30 rounded-[var(--radius-btn)] transition-colors"
-                    onClick={(e) => e.stopPropagation()}
+                <div className="space-y-2 pt-2">
+                  <Link
+                    href={`/resources/${resource.id}`}
+                    onClick={handleDetailViewClick}
+                    className="flex items-center justify-center w-full py-2 px-3 text-xs font-medium text-white bg-white/20 hover:bg-white/30 rounded-[var(--radius-btn)] transition-colors"
                   >
-                    <Navigation className="h-3.5 w-3.5" aria-hidden />
-                    Directions
-                  </a>
-                  <a
-                    href={`tel:${resource.phone}`}
-                    className="flex items-center gap-1.5 flex-1 justify-center py-2 px-3 text-xs font-medium text-white bg-white/20 hover:bg-white/30 rounded-[var(--radius-btn)] transition-colors"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Phone className="h-3.5 w-3.5" aria-hidden />
-                    Call
-                  </a>
+                    <ExternalLink className="h-3.5 w-3.5 mr-1.5" aria-hidden />
+                    View full details
+                  </Link>
+                  <div className="flex gap-2">
+                    <a
+                      href={mapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center flex-1 py-2 px-3 text-xs font-medium text-white bg-white/20 hover:bg-white/30 rounded-[var(--radius-btn)] transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Navigation className="h-3.5 w-3.5 mr-1.5" aria-hidden />
+                      Directions
+                    </a>
+                    <a
+                      href={`tel:${resource.phone}`}
+                      className="flex items-center justify-center flex-1 py-2 px-3 text-xs font-medium text-white bg-white/20 hover:bg-white/30 rounded-[var(--radius-btn)] transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Phone className="h-3.5 w-3.5 mr-1.5" aria-hidden />
+                      Call
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>

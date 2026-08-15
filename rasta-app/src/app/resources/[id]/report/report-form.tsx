@@ -29,6 +29,9 @@ export default function ReportForm({ resourceId }: { resourceId: string }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!reason.trim()) { setError("Please describe the issue."); return; }
+    if (reason.length > 500) { setError("Description is too long (max 500 characters)."); return; }
+    if (reason.length < 10) { setError("Description must be at least 10 characters."); return; }
+    if (contact.length > 200) { setError("Contact info is too long (max 200 characters)."); return; }
     setLoading(true);
     setError(null);
     try {

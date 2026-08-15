@@ -22,7 +22,6 @@ const orgNavLinks = [
 const adminNavLinks = [
   { href: "/admin",          label: "Admin Panel" },
   { href: "/resources",      label: "Resources" },
-  { href: "/help",           label: "Help" },
 ];
 
 export default function Navbar() {

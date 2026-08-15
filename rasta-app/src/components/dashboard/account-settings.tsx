@@ -167,6 +167,16 @@ export default function AccountSettings({ user, orgUser, resource, onResourceUpd
       return;
     }
 
+    if (bio.length > 500) {
+      setBioError("Bio is too long (max 500 characters)");
+      return;
+    }
+
+    if (bio.length < 10) {
+      setBioError("Bio must be at least 10 characters");
+      return;
+    }
+
     setBioLoading(true);
     setBioError(null);
     setBioSuccess(false);

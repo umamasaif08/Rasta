@@ -48,6 +48,14 @@ export default function DashboardClient() {
       .finally(() => setDataLoading(false));
   }, [user]);
 
+  const tabs = [
+    { id: "listing" as const, label: "Edit Listing", icon: ListChecks },
+    { id: "preview" as const, label: "View Public", icon: Eye },
+    { id: "photos" as const, label: "Photos", icon: Image },
+    { id: "settings" as const, label: "Account", icon: Settings },
+    { id: "verification" as const, label: "Verification", icon: CheckCircle2 },
+  ];
+
   function patchResource(id: string, data: Partial<Resource>) {
     setResources((prev) =>
       prev.map((r) => (r.id === id ? { ...r, ...data } : r))
@@ -143,18 +151,35 @@ export default function DashboardClient() {
             transition={{ delay: 0.3 }}
             className="mb-6"
           >
-            <nav className="flex gap-2 border-b border-[var(--color-teal-light)] overflow-x-auto" aria-label="Dashboard sections">
+            <nav className="flex gap-2 border-b border-[var(--color-teal-light)] overflow-x-auto" aria-label="Dashboard sections" role="tablist">
               {[
                 { id: "listing" as const, label: "Edit Listing", icon: ListChecks },
                 { id: "preview" as const, label: "View Public", icon: Eye },
                 { id: "photos" as const, label: "Photos", icon: Image },
                 { id: "settings" as const, label: "Account", icon: Settings },
                 { id: "verification" as const, label: "Verification", icon: CheckCircle2 },
-              ].map(({ id, label, icon: Icon }) => (
+              ].map(({ id, label, icon: Icon }, idx) => (
                 <button
                   key={id}
+                  role="tab"
+                  aria-selected={activeTab === id}
+                  tabIndex={activeTab === id ? 0 : -1}
                   onClick={() => setActiveTab(id)}
-                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setActiveTab(id);
+                    } else if (e.key === "ArrowRight") {
+                      e.preventDefault();
+                      const nextIdx = (idx + 1) % tabs.length;
+                      setActiveTab(tabs[nextIdx].id);
+                    } else if (e.key === "ArrowLeft") {
+                      e.preventDefault();
+                      const prevIdx = (idx - 1 + tabs.length) % tabs.length;
+                      setActiveTab(tabs[prevIdx].id);
+                    }
+                  }}
+                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-teal)] focus-visible:ring-offset-2 ${
                     activeTab === id
                       ? "border-[var(--color-teal)] text-[var(--color-teal)]"
                       : "border-transparent text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]"

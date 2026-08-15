@@ -80,12 +80,21 @@ export default function RegisterForm() {
     }
     if (step === 1) {
       if (!form.orgName.trim()) return "Organisation name is required.";
+      if (form.orgName.length > 100) return "Organisation name is too long (max 100 characters).";
+      if (form.orgName.length < 2) return "Organisation name must be at least 2 characters.";
+      if (!/^[a-zA-Z0-9\s\-\u0600-\u06FF]+$/.test(form.orgName.trim())) return "Organisation name contains invalid characters.";
     }
     if (step === 2) {
       if (!form.description.trim()) return "Description is required.";
+      if (form.description.length > 500) return "Description is too long (max 500 characters).";
+      if (form.description.length < 10) return "Description must be at least 10 characters.";
       if (!form.address.trim())     return "Address is required.";
+      if (form.address.length > 200) return "Address is too long (max 200 characters).";
       if (!form.phone.trim())       return "Phone number is required.";
+      if (form.phone.length < 8)    return "Phone number is too short.";
+      if (form.phone.length > 20)   return "Phone number is too long.";
       if (!form.hours.trim())       return "Hours are required.";
+      if (form.hours.length > 100)  return "Hours are too long.";
       if (form.languages.length === 0) return "Select at least one language.";
     }
     return null;

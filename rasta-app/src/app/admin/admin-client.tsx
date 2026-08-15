@@ -386,12 +386,13 @@ export default function AdminClient() {
 
       {/* Tab switcher */}
       <div className="relative mb-6">
-        <div className="relative flex flex-wrap sm:flex-nowrap rounded-[var(--radius-btn)] bg-[var(--color-surface-2)] border border-[var(--color-teal-light)] p-1 gap-1 sm:gap-0 overflow-hidden">
+        <div className="relative flex flex-wrap sm:flex-nowrap rounded-[var(--radius-btn)] bg-[var(--color-surface-2)] border border-[var(--color-teal-light)] p-1 gap-1 sm:gap-0 overflow-hidden" role="tablist" aria-label="Admin tabs">
           {(["pending", "reports", "history"] as Tab[]).map((t) => (
             <button
               key={t}
-              onClick={() => setTab(t)}
+              role="tab"
               aria-selected={tab === t}
+              onClick={() => setTab(t)}
               className={`relative z-10 flex-1 min-w-[110px] flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium rounded-[6px] transition-colors ${
                 tab === t ? "text-white" : "text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]"
               }`}

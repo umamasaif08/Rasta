@@ -13,9 +13,12 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
+  setPersistence,
+  browserSessionPersistence,
 } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp, collection } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import { useRouter } from "next/navigation";
 import type { OrgUser } from "@/types";
 
 interface AuthContextValue {
@@ -34,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser]       = useState<User | null>(null);
   const [orgUser, setOrgUser] = useState<OrgUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -74,6 +78,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     await firebaseSignOut(auth);
+    // Redirect to public dashboard (home) after sign out
+    router.push("/");
   };
 
   return (
