@@ -204,46 +204,36 @@ export default function ListingAssistant({ resource, onNotesUpdated }: ListingAs
         Chat with our assistant to strengthen your listing
       </Button>
 
-      {/* Chat modal */}
+      {/* In-place expanding chat panel - stays within Card bounds */}
       <AnimatePresence>
-        {open && (
+        {open ? (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/30 backdrop-blur-sm"
-            onClick={() => setOpen(false)}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
           >
-            <motion.div
-              initial={{ y: "100%", opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: "100%", opacity: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-lg bg-[var(--color-surface)] rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[600px]"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="chat-title"
-            >
+            <div className="border border-[var(--color-teal-light)] rounded-[var(--radius-card)] bg-[var(--color-surface)] overflow-hidden">
               {/* Header */}
-              <div className="flex items-center justify-between p-4 border-b border-[var(--color-teal-light)]">
+              <div className="flex items-center justify-between p-3 border-b border-[var(--color-teal-light)] bg-[var(--color-surface-2)]">
                 <div className="flex items-center gap-2">
-                  <MessageCircle className="h-5 w-5 text-[var(--color-teal)]" aria-hidden />
-                  <h2 id="chat-title" className="font-semibold text-[var(--color-ink)]">
+                  <MessageCircle className="h-4 w-4 text-[var(--color-teal)]" aria-hidden />
+                  <h3 id="chat-title" className="font-semibold text-[var(--color-ink)] text-sm">
                     Listing Assistant
-                  </h2>
+                  </h3>
                 </div>
                 <button
                   onClick={() => setOpen(false)}
                   aria-label="Close chat"
-                  className="text-[var(--color-ink-faint)] hover:text-[var(--color-ink)] transition-colors"
+                  className="text-[var(--color-ink-faint)] hover:text-[var(--color-ink)] transition-colors p-1"
                 >
-                  <X className="h-5 w-5" />
+                  <X className="h-4 w-4" />
                 </button>
               </div>
 
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {/* Messages - fixed height with internal scrolling */}
+              <div className="h-64 overflow-y-auto p-3 space-y-2">
                 {messages.map((msg, i) => (
                   <motion.div
                     key={i}
@@ -306,7 +296,7 @@ export default function ListingAssistant({ resource, onNotesUpdated }: ListingAs
 
               {/* Input */}
               {!done && (
-                <div className="p-4 border-t border-[var(--color-teal-light)]">
+                <div className="p-3 border-t border-[var(--color-teal-light)] bg-[var(--color-surface-2)]">
                   <div className="flex gap-2">
                     <input
                       ref={inputRef}
@@ -316,22 +306,22 @@ export default function ListingAssistant({ resource, onNotesUpdated }: ListingAs
                       onKeyDown={handleKeyDown}
                       placeholder="Type your response..."
                       disabled={loading}
-                      className="flex-1 h-10 rounded-full border border-[var(--color-teal-light)] bg-[var(--color-surface)] px-4 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-ink-faint)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-teal)] disabled:opacity-50"
+                      className="flex-1 h-9 rounded-full border border-[var(--color-teal-light)] bg-[var(--color-surface)] px-3 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-ink-faint)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-teal)] disabled:opacity-50"
                     />
                     <button
                       onClick={sendMessage}
                       disabled={loading || !input.trim()}
                       aria-label="Send message"
-                      className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-teal)] text-white hover:bg-[var(--color-teal-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-teal)] text-white hover:bg-[var(--color-teal-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Send className="h-4 w-4" aria-hidden />
+                      <Send className="h-3.5 w-3.5" aria-hidden />
                     </button>
                   </div>
                 </div>
               )}
-            </motion.div>
+            </div>
           </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
     </>
   );
