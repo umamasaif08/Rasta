@@ -57,21 +57,25 @@ const categories = [
     label: "Shelter", icon: Home, href: "/resources?category=shelter",
     bg: "bg-[var(--color-teal-light)]", iconColor: "text-[var(--color-teal)]",
     border: "border-[var(--color-teal)]", glow: "hover:shadow-[0_8px_24px_rgba(0,133,133,0.18)]",
+    textColor: "text-[var(--color-teal-dark)]", // Added explicit text color for better contrast
   },
   {
     label: "Food", icon: Utensils, href: "/resources?category=food",
     bg: "bg-[var(--color-cream)]", iconColor: "text-[var(--color-terracotta)]",
     border: "border-[var(--color-terracotta)]", glow: "hover:shadow-[0_8px_24px_rgba(199,82,42,0.15)]",
+    textColor: "text-[#8b3c1a]", // Fixed contrast: darker text on cream background
   },
   {
     label: "Clinic", icon: Stethoscope, href: "/resources?category=clinic",
     bg: "bg-[var(--color-sage-light)]", iconColor: "text-[var(--color-sage)]",
     border: "border-[var(--color-sage)]", glow: "hover:shadow-[0_8px_24px_rgba(116,168,146,0.18)]",
+    textColor: "text-[#2d4336]", // Fixed contrast: darker text on sage background
   },
   {
     label: "Legal Aid", icon: Scale, href: "/resources?category=legal",
     bg: "bg-[var(--color-sand-light)]", iconColor: "text-[var(--color-ink-muted)]",
     border: "border-[var(--color-sand)]", glow: "hover:shadow-[0_8px_24px_rgba(229,193,133,0.25)]",
+    textColor: "text-[#3a3028]", // Fixed contrast: darker text on sand background
   },
 ] as const;
 
@@ -249,7 +253,7 @@ export default function HomePage() {
           className="grid grid-cols-2 gap-4 sm:grid-cols-4"
           role="list"
         >
-          {categories.map(({ label, icon: Icon, href, bg, iconColor, border, glow }) => (
+          {categories.map(({ label, icon: Icon, href, bg, iconColor, border, glow, textColor }) => (
             <motion.li key={label} variants={cardReveal}>
               <Link
                 href={href}
@@ -261,7 +265,7 @@ export default function HomePage() {
                 >
                   <Icon className={`h-8 w-8 ${iconColor}`} aria-hidden />
                 </motion.div>
-                <span className="font-semibold text-[var(--color-ink)] text-sm tracking-wide">
+                <span className={`font-semibold ${textColor} text-sm tracking-wide`}>
                   {label}
                 </span>
               </Link>

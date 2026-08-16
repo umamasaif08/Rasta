@@ -20,7 +20,7 @@ const buttonVariants = cva(
         ghost:
           "text-[var(--color-ink)] hover:bg-[var(--color-surface-2)]",
         sand:
-          "bg-[var(--color-sand)] text-[var(--color-ink)] hover:bg-[#d9b070]",
+          "bg-[var(--color-sand)] text-[#3a2f1e] hover:bg-[#d9b070]", // Fixed contrast: darker text on sand
         destructive:
           "bg-red-600 text-white hover:bg-red-700",
       },

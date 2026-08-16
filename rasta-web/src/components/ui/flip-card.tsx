@@ -85,21 +85,13 @@ export default function FlipCard({ org, index = 0 }: FlipCardProps) {
               <div className="flex items-center justify-between pt-3 border-t border-[var(--color-teal-light)]">
                 <span className="text-xs text-[var(--color-ink-faint)]">Est. {org.founded}</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-[var(--color-ink-faint)] group-hover:text-[var(--color-teal)] transition-colors">
-                    Click: details • Double-click: about
+                  <span className="text-[11px] text-[var(--color-ink-faint)] group-hover:text-[var(--color-teal)] transition-colors">
+                    Flip for more details
                   </span>
                   <ArrowUpRight className="h-3.5 w-3.5 text-[var(--color-ink-faint)] group-hover:text-[var(--color-teal)] transition-colors" aria-hidden />
                 </div>
               </div>
             </div>
-
-            {/* Invisible overlays for click handling */}
-            <Link
-              href={`/organisations/${org.id}`}
-              className="absolute inset-0 z-20 rounded-[var(--radius-card)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-teal)] focus-visible:ring-offset-2"
-              aria-label={`View ${org.name} details`}
-              onDoubleClick={(e) => { e.preventDefault(); e.stopPropagation(); setFlipped(true); }}
-            />
 
             {/* Flip button - keyboard accessible */}
             <button
@@ -107,7 +99,7 @@ export default function FlipCard({ org, index = 0 }: FlipCardProps) {
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); setFlipped(true); }}
               aria-label={`Show more about ${org.name}`}
               aria-pressed={flipped}
-              title="Show more details (or double-click card)"
+              title="Show more details"
             >
               <RotateCcw className="h-3.5 w-3.5 text-[var(--color-ink)]" aria-hidden />
             </button>
@@ -145,7 +137,7 @@ export default function FlipCard({ org, index = 0 }: FlipCardProps) {
                 {org.serves.map((s) => (
                   <span
                     key={s}
-                    className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-medium text-white"
+                    className="rounded-full bg-white/20 px-2 py-0.5 text-[11px] font-medium text-white"
                   >
                     {s}
                   </span>
@@ -156,7 +148,7 @@ export default function FlipCard({ org, index = 0 }: FlipCardProps) {
               <div className="flex items-center gap-3">
                 <a
                   href={`tel:${org.phone}`}
-                  className="flex items-center gap-1 text-[10px] text-white/80 hover:text-white transition-colors"
+                  className="flex items-center gap-1 text-[11px] text-white/80 hover:text-white transition-colors"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <Phone className="h-3 w-3" aria-hidden />
@@ -166,7 +158,7 @@ export default function FlipCard({ org, index = 0 }: FlipCardProps) {
                   href={org.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="ml-auto flex items-center gap-1 text-[10px] text-white/80 hover:text-white transition-colors"
+                  className="ml-auto flex items-center gap-1 text-[11px] text-white/80 hover:text-white transition-colors"
                   onClick={(e) => e.stopPropagation()}
                 >
                   Website <ExternalLink className="h-3 w-3" aria-hidden />

@@ -412,7 +412,7 @@ export default function AdminClient() {
                   <span className="sm:hidden">Pending</span>
                   <span className="hidden sm:inline">Pending</span>
                   {pending.length > 0 && (
-                    <span className={`ml-1 rounded-full px-1.5 py-0.5 text-xs font-mono ${tab === "pending" ? "bg-white/20" : "bg-[var(--color-sand)] text-[var(--color-ink)]"}`}>
+                    <span className={`ml-1 rounded-full px-1.5 py-0.5 text-xs font-mono ${tab === "pending" ? "bg-white/20" : "bg-[var(--color-sand)] text-[#3a2f1e]"}`}>
                       {pending.length}
                     </span>
                   )}

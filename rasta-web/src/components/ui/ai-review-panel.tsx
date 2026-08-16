@@ -19,7 +19,7 @@ interface AiReviewPanelProps {
 
 const CONFIDENCE_META = {
   high:   { label: "High confidence",   color: "text-[var(--color-teal)]",       bg: "bg-[var(--color-teal-light)]" },
-  medium: { label: "Medium confidence", color: "text-[var(--color-sand)]",       bg: "bg-[var(--color-sand-light)]" },
+  medium: { label: "Medium confidence", color: "text-[#5d4a2f]",                  bg: "bg-[var(--color-sand-light)]" }, // Fixed contrast
   low:    { label: "Low confidence",    color: "text-[var(--color-terracotta)]", bg: "bg-[var(--color-terracotta-light)]" },
 };
 
@@ -201,7 +201,7 @@ export default function AiReviewPanel({ initialText = "", resourceName }: AiRevi
                           {result.missingFields.map((f) => (
                             <li
                               key={f}
-                              className="rounded-full bg-[var(--color-sand)] text-[var(--color-ink)] text-[10px] font-medium px-2.5 py-0.5"
+                              className="rounded-full bg-[var(--color-sand)] text-[#3a2f1e] text-[11px] font-medium px-2.5 py-0.5"
                             >
                               {f}
                             </li>

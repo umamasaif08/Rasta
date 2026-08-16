@@ -164,12 +164,12 @@ export default function ResourceCard({ resource, index = 0 }: ResourceCardProps)
                 <div className="flex items-center justify-between pt-3 border-t border-[var(--color-teal-light)] mt-3">
                   <div className="flex gap-1.5 flex-wrap">
                     {resource.servesWomen && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-medium rounded-full bg-[var(--color-teal-light)] text-[var(--color-teal-dark)] px-2 py-0.5">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-medium rounded-full bg-[var(--color-teal-light)] text-[var(--color-teal-dark)] px-2 py-0.5">
                         <Users className="h-2.5 w-2.5" aria-hidden /> Women
                       </span>
                     )}
                     {resource.servesChildren && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-medium rounded-full bg-[var(--color-sage-light)] text-[var(--color-sage)] px-2 py-0.5">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-medium rounded-full bg-[var(--color-sage-light)] text-[#2d4336] px-2 py-0.5">
                         <Baby className="h-2.5 w-2.5" aria-hidden /> Children
                       </span>
                     )}

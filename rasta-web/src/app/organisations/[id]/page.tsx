@@ -86,7 +86,7 @@ export default async function OrganisationDetailPage({
               <Badge variant={BADGE_VARIANT[org.category] ?? "outline"}>
                 {CATEGORY_LABEL[org.category]}
               </Badge>
-              <span className="inline-flex items-center gap-1 text-xs font-medium rounded-full bg-[var(--color-sand)] text-[var(--color-ink)] px-2.5 py-0.5">
+              <span className="inline-flex items-center gap-1 text-xs font-medium rounded-full bg-[var(--color-sand)] text-[#3a2f1e] px-2.5 py-0.5">
                 <CheckCircle2 className="h-3 w-3" /> Verified
               </span>
             </div>

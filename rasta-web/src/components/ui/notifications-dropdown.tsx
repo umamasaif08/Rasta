@@ -109,7 +109,7 @@ export default function NotificationsDropdown({ orgId }: NotificationsDropdownPr
           <motion.span
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-[var(--color-terracotta)] text-white text-[10px] font-bold flex items-center justify-center"
+            className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-[var(--color-terracotta)] text-white text-[11px] font-bold flex items-center justify-center"
           >
             {unreadCount > 9 ? "9+" : unreadCount}
           </motion.span>
